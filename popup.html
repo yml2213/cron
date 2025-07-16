@@ -9,137 +9,141 @@
 </head>
 
 <body>
-    <h1>Cron定时解析</h1>
+    <div class="container">
+        <div class="header">
+            <h1>Cron定时解析</h1>
+            <div class="format-switch-container">
+                <label class="switch">
+                    <input type="checkbox" id="format-switch">
+                    <span class="slider round"></span>
+                </label>
+                <span id="format-label">5位格式</span>
+            </div>
+        </div>
 
-    <div class="format-switch-container">
-        <label class="switch">
-            <input type="checkbox" id="format-switch">
-            <span class="slider round"></span>
-        </label>
-        <span id="format-label">5位格式（分 时 日 月 周）</span>
-    </div>
+        <div class="main-content">
+            <div class="left-panel">
+                <div class="input-group">
+                    <label for="cron-input">表达式</label>
+                    <input type="text" id="cron-input" placeholder="例如: */5 * * * *" value="2 */5 * * 2-5">
+                </div>
+                <div class="result-wrapper">
+                    <div id="description-area"></div>
+                    <pre id="result-area"></pre>
+                </div>
+            </div>
 
-    <div class="input-group">
-        <label for="cron-input">Cron 表达式:</label>
-        <input type="text" id="cron-input" placeholder="例如: */5 * * * *" value="*/5 * * * *">
-        <button id="parse-button">解析</button>
-    </div>
+            <div class="right-panel">
+                <div class="tabs">
+                    <div class="tab active" data-tab="examples-tab">例子</div>
+                    <div class="tab" data-tab="format-tab">格式</div>
+                    <div class="tab" data-tab="special-chars-tab">特殊字符</div>
+                </div>
 
-    <div class="tabs">
-        <div class="tab active" data-tab="result-tab">结果</div>
-        <div class="tab" data-tab="examples-tab">示例</div>
-        <div class="tab" data-tab="format-tab">格式</div>
-        <div class="tab" data-tab="special-chars-tab">特殊字符</div>
-    </div>
+                <div class="tab-content-wrapper">
+                    <div id="examples-tab" class="tab-content">
+                        <h4>5位格式（分 时 日 月 周）</h4>
+                        <ul id="examples-list"></ul>
 
-    <div id="result-tab" class="tab-content">
-        <pre id="result-area" class="result-area"></pre>
-    </div>
+                        <h4>6位格式（秒 分 时 日 月 周）</h4>
+                        <ul id="examples-list-six"></ul>
+                    </div>
 
-    <div id="examples-tab" class="tab-content" style="display: none;">
-        <h3>常用示例</h3>
-        <p>点击示例可以自动填充到输入框</p>
+                    <div id="format-tab" class="tab-content" style="display: none;">
+                        <h4>5位格式（分 时 日 月 周）</h4>
+                        <table>
+                            <tr>
+                                <th>位置</th>
+                                <th>字段</th>
+                                <th>允许值</th>
+                                <th>允许特殊字符</th>
+                            </tr>
+                            <tr>
+                                <td>1</td>
+                                <td>分钟</td>
+                                <td>0-59</td>
+                                <td>* , - /</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>小时</td>
+                                <td>0-23</td>
+                                <td>* , - /</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>日期</td>
+                                <td>1-31</td>
+                                <td>* , - / ?</td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>月份</td>
+                                <td>1-12</td>
+                                <td>* , - /</td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td>星期</td>
+                                <td>0-7 (0和7都表示周日)</td>
+                                <td>* , - / ?</td>
+                            </tr>
+                        </table>
 
-        <h4>5位格式（分 时 日 月 周）</h4>
-        <ul id="examples-list"></ul>
+                        <h4>6位格式（秒 分 时 日 月 周）</h4>
+                        <table>
+                            <tr>
+                                <th>位置</th>
+                                <th>字段</th>
+                                <th>允许值</th>
+                                <th>允许特殊字符</th>
+                            </tr>
+                            <tr>
+                                <td>1</td>
+                                <td>秒</td>
+                                <td>0-59</td>
+                                <td>* , - /</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>分钟</td>
+                                <td>0-59</td>
+                                <td>* , - /</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>小时</td>
+                                <td>0-23</td>
+                                <td>* , - /</td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>日期</td>
+                                <td>1-31</td>
+                                <td>* , - / ?</td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td>月份</td>
+                                <td>1-12</td>
+                                <td>* , - /</td>
+                            </tr>
+                            <tr>
+                                <td>6</td>
+                                <td>星期</td>
+                                <td>0-7 (0和7都表示周日)</td>
+                                <td>* , - / ?</td>
+                            </tr>
+                        </table>
+                    </div>
 
-        <h4>6位格式（秒 分 时 日 月 周）</h4>
-        <ul id="examples-list-six"></ul>
-    </div>
-
-    <div id="format-tab" class="tab-content" style="display: none;">
-        <h3>Cron 表达式格式</h3>
-
-        <h4>5位格式（分 时 日 月 周）</h4>
-        <table>
-            <tr>
-                <th>位置</th>
-                <th>字段</th>
-                <th>允许值</th>
-                <th>允许特殊字符</th>
-            </tr>
-            <tr>
-                <td>1</td>
-                <td>分钟</td>
-                <td>0-59</td>
-                <td>* , - /</td>
-            </tr>
-            <tr>
-                <td>2</td>
-                <td>小时</td>
-                <td>0-23</td>
-                <td>* , - /</td>
-            </tr>
-            <tr>
-                <td>3</td>
-                <td>日期</td>
-                <td>1-31</td>
-                <td>* , - / ?</td>
-            </tr>
-            <tr>
-                <td>4</td>
-                <td>月份</td>
-                <td>1-12</td>
-                <td>* , - /</td>
-            </tr>
-            <tr>
-                <td>5</td>
-                <td>星期</td>
-                <td>0-7 (0和7都表示周日)</td>
-                <td>* , - / ?</td>
-            </tr>
-        </table>
-
-        <h4>6位格式（秒 分 时 日 月 周）</h4>
-        <table>
-            <tr>
-                <th>位置</th>
-                <th>字段</th>
-                <th>允许值</th>
-                <th>允许特殊字符</th>
-            </tr>
-            <tr>
-                <td>1</td>
-                <td>秒</td>
-                <td>0-59</td>
-                <td>* , - /</td>
-            </tr>
-            <tr>
-                <td>2</td>
-                <td>分钟</td>
-                <td>0-59</td>
-                <td>* , - /</td>
-            </tr>
-            <tr>
-                <td>3</td>
-                <td>小时</td>
-                <td>0-23</td>
-                <td>* , - /</td>
-            </tr>
-            <tr>
-                <td>4</td>
-                <td>日期</td>
-                <td>1-31</td>
-                <td>* , - / ?</td>
-            </tr>
-            <tr>
-                <td>5</td>
-                <td>月份</td>
-                <td>1-12</td>
-                <td>* , - /</td>
-            </tr>
-            <tr>
-                <td>6</td>
-                <td>星期</td>
-                <td>0-7 (0和7都表示周日)</td>
-                <td>* , - / ?</td>
-            </tr>
-        </table>
-    </div>
-
-    <div id="special-chars-tab" class="tab-content" style="display: none;">
-        <h3>特殊字符说明</h3>
-        <ul id="special-chars-list"></ul>
+                    <div id="special-chars-tab" class="tab-content" style="display: none;">
+                        <h3>特殊字符说明</h3>
+                        <ul id="special-chars-list"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="js/cron-parser.js"></script>
