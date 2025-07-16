@@ -3,7 +3,10 @@
  */
 class CronParser {
     constructor() {
-        this.cronRegex = /^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)$/
+        // 支持 5 位和 6 位 Cron 表达式
+        this.cronRegex5 = /^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)$/
+        this.cronRegex6 = /^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)$/
+
         this.dayNames = {
             '0': '星期日', '1': '星期一', '2': '星期二', '3': '星期三',
             '4': '星期四', '5': '星期五', '6': '星期六', '7': '星期日',
@@ -27,38 +30,81 @@ class CronParser {
         // 移除多余的空格
         expression = expression.trim()
 
-        // 检查表达式格式
-        const match = expression.match(this.cronRegex)
-        if (!match) {
-            return { error: "无效的 Cron 表达式格式。应为: '分 时 日 月 周'" }
+        let match
+        let format = '5-field' // 默认为 5 位格式
+
+        // 尝试匹配 6 位格式
+        match = expression.match(this.cronRegex6)
+        if (match) {
+            format = '6-field'
+        } else {
+            // 尝试匹配 5 位格式
+            match = expression.match(this.cronRegex5)
+            if (!match) {
+                return { error: "无效的 Cron 表达式格式。应为 '分 时 日 月 周' 或 '秒 分 时 日 月 周'" }
+            }
         }
 
-        // 提取各部分
-        const [_, minute, hour, dayOfMonth, month, dayOfWeek] = match
-
         try {
-            // 解析各部分
-            const parsedMinute = this.parseField(minute, 0, 59)
-            const parsedHour = this.parseField(hour, 0, 23)
-            const parsedDayOfMonth = this.parseField(dayOfMonth, 1, 31)
-            const parsedMonth = this.parseField(month, 1, 12)
-            const parsedDayOfWeek = this.parseField(dayOfWeek, 0, 7)
+            // 根据格式提取和解析字段
+            if (format === '6-field') {
+                // 6 位格式：秒、分、时、日、月、周
+                const [_, second, minute, hour, dayOfMonth, month, dayOfWeek] = match
 
-            // 生成描述
-            const description = this.generateDescription(
-                parsedMinute, parsedHour, parsedDayOfMonth,
-                parsedMonth, parsedDayOfWeek
-            )
+                const parsedSecond = this.parseField(second, 0, 59)
+                const parsedMinute = this.parseField(minute, 0, 59)
+                const parsedHour = this.parseField(hour, 0, 23)
+                const parsedDayOfMonth = this.parseField(dayOfMonth, 1, 31)
+                const parsedMonth = this.parseField(month, 1, 12)
+                const parsedDayOfWeek = this.parseField(dayOfWeek, 0, 7)
 
-            // 生成未来执行时间
-            const nextDates = this.generateNextDates(
-                parsedMinute, parsedHour, parsedDayOfMonth,
-                parsedMonth, parsedDayOfWeek
-            )
+                // 生成描述
+                const description = this.generateDescription(
+                    parsedSecond, parsedMinute, parsedHour, parsedDayOfMonth,
+                    parsedMonth, parsedDayOfWeek, format
+                )
 
-            return {
-                description,
-                nextDates
+                // 生成未来执行时间
+                const nextDates = this.generateNextDates(
+                    parsedSecond, parsedMinute, parsedHour, parsedDayOfMonth,
+                    parsedMonth, parsedDayOfWeek, format
+                )
+
+                return {
+                    format,
+                    description,
+                    nextDates
+                }
+            } else {
+                // 5 位格式：分、时、日、月、周
+                const [_, minute, hour, dayOfMonth, month, dayOfWeek] = match
+
+                const parsedMinute = this.parseField(minute, 0, 59)
+                const parsedHour = this.parseField(hour, 0, 23)
+                const parsedDayOfMonth = this.parseField(dayOfMonth, 1, 31)
+                const parsedMonth = this.parseField(month, 1, 12)
+                const parsedDayOfWeek = this.parseField(dayOfWeek, 0, 7)
+
+                // 对于 5 位格式，秒始终为 0
+                const parsedSecond = [0]
+
+                // 生成描述
+                const description = this.generateDescription(
+                    parsedSecond, parsedMinute, parsedHour, parsedDayOfMonth,
+                    parsedMonth, parsedDayOfWeek, format
+                )
+
+                // 生成未来执行时间
+                const nextDates = this.generateNextDates(
+                    parsedSecond, parsedMinute, parsedHour, parsedDayOfMonth,
+                    parsedMonth, parsedDayOfWeek, format
+                )
+
+                return {
+                    format,
+                    description,
+                    nextDates
+                }
             }
         } catch (error) {
             return { error: error.message }
@@ -135,19 +181,34 @@ class CronParser {
     /**
      * 生成人类可读的描述
      */
-    generateDescription(minutes, hours, daysOfMonth, months, daysOfWeek) {
+    generateDescription(seconds, minutes, hours, daysOfMonth, months, daysOfWeek, format) {
         let description = ''
 
+        // 秒描述 (仅适用于 6 位格式)
+        if (format === '6-field') {
+            if (seconds.length === 60) {
+                description += '每秒'
+            } else if (seconds.length === 1) {
+                description += `在第 ${seconds[0]} 秒`
+            } else if (this.isEveryNth(seconds)) {
+                const step = seconds[1] - seconds[0]
+                description += `每隔 ${step} 秒`
+            } else {
+                description += `在第 ${seconds.join(', ')} 秒`
+            }
+        }
+
         // 分钟描述
+        const minutePrefix = format === '6-field' ? '，' : ''
         if (minutes.length === 60) {
-            description += '每分钟'
+            description += `${minutePrefix}每分钟`
         } else if (minutes.length === 1) {
-            description += `在第 ${minutes[0]} 分钟`
+            description += `${minutePrefix}在第 ${minutes[0]} 分钟`
         } else if (this.isEveryNth(minutes)) {
             const step = minutes[1] - minutes[0]
-            description += `每隔 ${step} 分钟`
+            description += `${minutePrefix}每隔 ${step} 分钟`
         } else {
-            description += `在第 ${minutes.join(', ')} 分钟`
+            description += `${minutePrefix}在第 ${minutes.join(', ')} 分钟`
         }
 
         // 小时描述
@@ -212,27 +273,37 @@ class CronParser {
     /**
      * 生成未来的执行时间
      */
-    generateNextDates(minutes, hours, daysOfMonth, months, daysOfWeek) {
+    generateNextDates(seconds, minutes, hours, daysOfMonth, months, daysOfWeek, format) {
         const now = new Date()
         const result = []
         let date = new Date(now)
 
-        // 重置秒和毫秒
-        date.setSeconds(0)
+        // 重置毫秒
         date.setMilliseconds(0)
+
+        // 对于 5 位格式，秒设置为 0
+        if (format === '5-field') {
+            date.setSeconds(0)
+        }
 
         // 找到10个未来的执行时间
         while (result.length < 10) {
             // 检查当前日期是否匹配
-            if (this.dateMatches(date, minutes, hours, daysOfMonth, months, daysOfWeek)) {
+            if (this.dateMatches(date, seconds, minutes, hours, daysOfMonth, months, daysOfWeek)) {
                 // 如果日期在未来，添加到结果
                 if (date > now) {
                     result.push(new Date(date))
                 }
             }
 
-            // 前进一分钟
-            date.setMinutes(date.getMinutes() + 1)
+            // 根据格式前进不同的时间单位
+            if (format === '6-field') {
+                // 对于 6 位格式，前进一秒
+                date.setSeconds(date.getSeconds() + 1)
+            } else {
+                // 对于 5 位格式，前进一分钟
+                date.setMinutes(date.getMinutes() + 1)
+            }
         }
 
         return result
@@ -241,7 +312,8 @@ class CronParser {
     /**
      * 检查日期是否匹配 Cron 表达式
      */
-    dateMatches(date, minutes, hours, daysOfMonth, months, daysOfWeek) {
+    dateMatches(date, seconds, minutes, hours, daysOfMonth, months, daysOfWeek) {
+        const second = date.getSeconds()
         const minute = date.getMinutes()
         const hour = date.getHours()
         const dayOfMonth = date.getDate()
@@ -249,6 +321,7 @@ class CronParser {
         const dayOfWeek = date.getDay() // JavaScript 星期从0(周日)开始
 
         return (
+            seconds.includes(second) &&
             minutes.includes(minute) &&
             hours.includes(hour) &&
             daysOfMonth.includes(dayOfMonth) &&
@@ -260,7 +333,7 @@ class CronParser {
     /**
      * 格式化日期为可读字符串
      */
-    formatDate(date) {
+    formatDate(date, includeSeconds = true) {
         const pad = (num) => String(num).padStart(2, '0')
 
         const year = date.getFullYear()
@@ -268,8 +341,11 @@ class CronParser {
         const day = pad(date.getDate())
         const hour = pad(date.getHours())
         const minute = pad(date.getMinutes())
+        const second = pad(date.getSeconds())
 
-        return `${year}-${month}-${day} ${hour}:${minute}:00`
+        return includeSeconds
+            ? `${year}-${month}-${day} ${hour}:${minute}:${second}`
+            : `${year}-${month}-${day} ${hour}:${minute}:00`
     }
 }
 
