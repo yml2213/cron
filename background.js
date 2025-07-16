@@ -1,4 +1,4 @@
-let windowId = null;
+let windowId = null
 // 打开独立窗口
 const panel = {
     create() {
@@ -21,7 +21,7 @@ const panel = {
                 if (!w) {
                     this.create()
                 } else {
-                    chrome.windows.update(windowId, {focused: true})
+                    chrome.windows.update(windowId, { focused: true })
                 }
             })
         }
@@ -29,7 +29,7 @@ const panel = {
     },
     onRemoved(id) {
         if (id === windowId) {
-            windowId = null;
+            windowId = null
         }
     }
 }
@@ -40,13 +40,24 @@ chrome.commands.onCommand.addListener((command) => {
         case "panel":
             panel.open()
 
-            break;
+            break
         default:
-            return;
+            return
     }
 })
 
 // 窗口关闭事件
 chrome.windows.onRemoved.addListener((id) => {
-    panel.onRemoved(id);
+    panel.onRemoved(id)
+})
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === 'open_tab') {
+        chrome.tabs.create({ url: message.url })
+    } else if (message.type === 'chrome_runtime_sendMessage') {
+        // Forward the message to other parts of the extension if needed
+        chrome.runtime.sendMessage(message.message, sendResponse)
+        // a-sync callback
+        return true
+    }
 })

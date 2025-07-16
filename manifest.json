@@ -5,26 +5,36 @@
     "author": "wo@baiy.org",
     "offline_enabled": true,
     "homepage_url": "https://github.com/baiy/Ctool",
-    "manifest_version": 2,
-    "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
-    "browser_action": {
+    "manifest_version": 3,
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'",
+        "sandbox": "sandbox allow-scripts; script-src 'self' 'unsafe-eval'"
+    },
+    "sandbox": {
+        "pages": [
+            "sandbox.html"
+        ]
+    },
+    "action": {
         "default_icon": "img/icon_chrome.png",
         "default_title": "常用开发工具",
         "default_popup": "index.html"
     },
     "background": {
-        "scripts": ["background.js"]
+        "service_worker": "background.js"
     },
     "icons": {
         "16": "img/icon_chrome.png",
         "48": "img/icon_chrome.png",
         "128": "img/icon_chrome.png"
     },
-    "permissions": [
-        "clipboardWrite",
-        "clipboardRead",
+    "host_permissions": [
         "*://get.geojs.io/*",
         "*://*.baiy.org/*"
+    ],
+    "permissions": [
+        "clipboardWrite",
+        "clipboardRead"
     ],
     "commands": {
         "panel": {
