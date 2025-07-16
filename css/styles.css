@@ -193,17 +193,6 @@ input[type="text"] {
     overflow: hidden;
 }
 
-#description-area {
-    padding: 12px;
-    background-color: #eef7f9;
-    border: 1px solid #d1e8ec;
-    border-radius: 4px;
-    margin-bottom: 12px;
-    font-weight: 500;
-    color: #2c8898;
-    flex-shrink: 0;
-}
-
 #result-area {
     border: 1px solid #ddd;
     border-radius: 4px;

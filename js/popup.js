@@ -126,15 +126,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // 设置默认选项卡
     tabs[0].click()
 
-    // 解析按钮点击事件
-    parseButton.addEventListener('click', parseCron)
-
-    // 输入框回车事件
-    cronInput.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            parseCron()
-        }
-    })
+    // 输入框内容变化时实时解析
+    cronInput.addEventListener('input', parseCron)
 
     // 解析 Cron 表达式
     function parseCron() {
@@ -167,8 +160,6 @@ document.addEventListener('DOMContentLoaded', function () {
         resultArea.textContent = resultText
     }
 
-    // 如果有初始值，立即解析
-    if (cronInput.value.trim()) {
-        parseCron()
-    }
+    // 页面加载后立即解析一次
+    parseCron()
 }) 
